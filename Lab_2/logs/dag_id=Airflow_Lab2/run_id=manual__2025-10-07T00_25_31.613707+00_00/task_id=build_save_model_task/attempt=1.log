@@ -1,0 +1,17 @@
+[2025-10-07T00:25:46.554+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2025-10-07T00:25:46.577+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: Airflow_Lab2.build_save_model_task manual__2025-10-07T00:25:31.613707+00:00 [queued]>
+[2025-10-07T00:25:46.584+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: Airflow_Lab2.build_save_model_task manual__2025-10-07T00:25:31.613707+00:00 [queued]>
+[2025-10-07T00:25:46.584+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2025-10-07T00:25:46.591+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): build_save_model_task> on 2025-10-07 00:25:31.613707+00:00
+[2025-10-07T00:25:46.612+0000] {standard_task_runner.py:63} INFO - Started process 173 to run task
+[2025-10-07T00:25:46.616+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'Airflow_Lab2', 'build_save_model_task', 'manual__2025-10-07T00:25:31.613707+00:00', '--job-id', '7', '--raw', '--subdir', 'DAGS_FOLDER/main.py', '--cfg-path', '/tmp/tmp2jiu80i4']
+[2025-10-07T00:25:46.619+0000] {standard_task_runner.py:91} INFO - Job 7: Subtask build_save_model_task
+[2025-10-07T00:25:46.654+0000] {task_command.py:426} INFO - Running <TaskInstance: Airflow_Lab2.build_save_model_task manual__2025-10-07T00:25:31.613707+00:00 [running]> on host 5e8e3a814b86
+[2025-10-07T00:25:46.727+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='Airflow_Lab2' AIRFLOW_CTX_TASK_ID='build_save_model_task' AIRFLOW_CTX_EXECUTION_DATE='2025-10-07T00:25:31.613707+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-10-07T00:25:31.613707+00:00'
+[2025-10-07T00:25:46.727+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2025-10-07T00:25:46.792+0000] {python.py:237} INFO - Done. Returned value was: None
+[2025-10-07T00:25:46.793+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2025-10-07T00:25:46.809+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=Airflow_Lab2, task_id=build_save_model_task, run_id=manual__2025-10-07T00:25:31.613707+00:00, execution_date=20251007T002531, start_date=20251007T002546, end_date=20251007T002546
+[2025-10-07T00:25:46.884+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 0
+[2025-10-07T00:25:46.919+0000] {taskinstance.py:3503} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2025-10-07T00:25:46.922+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

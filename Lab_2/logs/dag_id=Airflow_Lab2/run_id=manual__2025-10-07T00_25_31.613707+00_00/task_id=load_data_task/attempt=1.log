@@ -1,0 +1,30 @@
+[2025-10-07T00:25:40.495+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2025-10-07T00:25:40.517+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: Airflow_Lab2.load_data_task manual__2025-10-07T00:25:31.613707+00:00 [queued]>
+[2025-10-07T00:25:40.521+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: Airflow_Lab2.load_data_task manual__2025-10-07T00:25:31.613707+00:00 [queued]>
+[2025-10-07T00:25:40.522+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 1
+[2025-10-07T00:25:40.527+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): load_data_task> on 2025-10-07 00:25:31.613707+00:00
+[2025-10-07T00:25:40.553+0000] {standard_task_runner.py:63} INFO - Started process 143 to run task
+[2025-10-07T00:25:40.560+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'Airflow_Lab2', 'load_data_task', 'manual__2025-10-07T00:25:31.613707+00:00', '--job-id', '4', '--raw', '--subdir', 'DAGS_FOLDER/main.py', '--cfg-path', '/tmp/tmpn4zfy6dg']
+[2025-10-07T00:25:40.567+0000] {standard_task_runner.py:91} INFO - Job 4: Subtask load_data_task
+[2025-10-07T00:25:40.608+0000] {task_command.py:426} INFO - Running <TaskInstance: Airflow_Lab2.load_data_task manual__2025-10-07T00:25:31.613707+00:00 [running]> on host 5e8e3a814b86
+[2025-10-07T00:25:40.664+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='Airflow_Lab2' AIRFLOW_CTX_TASK_ID='load_data_task' AIRFLOW_CTX_EXECUTION_DATE='2025-10-07T00:25:31.613707+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2025-10-07T00:25:31.613707+00:00'
+[2025-10-07T00:25:40.666+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2025-10-07T00:25:40.712+0000] {python.py:237} INFO - Done. Returned value was:      Daily Time Spent on Site  Age  ...            Timestamp  Clicked on Ad
+0                       68.95   35  ...  2016-03-27 00:53:11              0
+1                       80.23   31  ...  2016-04-04 01:39:02              0
+2                       69.47   26  ...  2016-03-13 20:35:42              0
+3                       74.15   29  ...  2016-01-10 02:31:19              0
+4                       68.37   35  ...  2016-06-03 03:36:18              0
+..                        ...  ...  ...                  ...            ...
+995                     72.97   30  ...  2016-02-11 21:49:00              1
+996                     51.30   45  ...  2016-04-22 02:07:01              1
+997                     51.63   51  ...  2016-02-01 17:24:57              1
+998                     55.55   19  ...  2016-03-24 02:35:54              0
+999                     45.01   26  ...  2016-06-03 21:43:21              1
+
+[1000 rows x 10 columns]
+[2025-10-07T00:25:40.752+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2025-10-07T00:25:40.802+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=Airflow_Lab2, task_id=load_data_task, run_id=manual__2025-10-07T00:25:31.613707+00:00, execution_date=20251007T002531, start_date=20251007T002540, end_date=20251007T002540
+[2025-10-07T00:25:40.822+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 0
+[2025-10-07T00:25:40.838+0000] {taskinstance.py:3503} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2025-10-07T00:25:40.839+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
