@@ -5,84 +5,126 @@ from kneed import KneeLocator
 import pickle
 import os
 import base64
+import numpy as np
 
+# ---------- Helpers ----------
+def _project_path(*parts):
+    return os.path.join(os.path.dirname(__file__), *parts)
+
+def _select_numeric_features(df: pd.DataFrame):
+    """Pick numeric columns and drop id-like columns."""
+    num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    # filter out obvious ID columns
+    drop_like = {"customerid", "id"}
+    features = [c for c in num_cols if c.lower() not in drop_like]
+    if not features:
+        raise ValueError("No usable numeric feature columns found.")
+    return features
+
+# ---------- Tasks ----------
 def load_data():
     """
-    Loads data from a CSV file, serializes it, and returns the serialized data.
-    Returns:
-        str: Base64-encoded serialized data (JSON-safe).
+    Loads training data from mall_customers.csv, serializes it, and returns base64 for XCom.
+    Returns: str (base64-encoded pickle of the raw DataFrame)
     """
-    print("We are here")
-    df = pd.read_csv(os.path.join(os.path.dirname(__file__), "../data/file.csv"))
-    serialized_data = pickle.dumps(df)                    # bytes
-    return base64.b64encode(serialized_data).decode("ascii")  # JSON-safe string
+    df = pd.read_csv(_project_path("../data/mall_customers.csv"))
+    serialized = pickle.dumps(df)                    # bytes
+    return base64.b64encode(serialized).decode("ascii")  # JSON-safe string
+
 
 def data_preprocessing(data_b64: str):
     """
-    Deserializes base64-encoded pickled data, performs preprocessing,
-    and returns base64-encoded pickled clustered data.
+    Deserializes raw DataFrame, selects numeric features (auto), fits MinMax scaler,
+    transforms train data, and returns base64 of a dict: {X, scaler, features}.
     """
     # decode -> bytes -> DataFrame
     data_bytes = base64.b64decode(data_b64)
     df = pickle.loads(data_bytes)
 
     df = df.dropna()
-    clustering_data = df[["BALANCE", "PURCHASES", "CREDIT_LIMIT"]]
+    features = _select_numeric_features(df)
 
-    min_max_scaler = MinMaxScaler()
-    clustering_data_minmax = min_max_scaler.fit_transform(clustering_data)
+    scaler = MinMaxScaler()
+    X = scaler.fit_transform(df[features])
 
-    # bytes -> base64 string for XCom
-    clustering_serialized_data = pickle.dumps(clustering_data_minmax)
-    return base64.b64encode(clustering_serialized_data).decode("ascii")
+    payload = {
+        "X": X,                    # numpy array
+        "scaler": scaler,          # fitted scaler
+        "features": features       # list of feature names to reuse on test
+    }
+    return base64.b64encode(pickle.dumps(payload)).decode("ascii")
 
 
-def build_save_model(data_b64: str, filename: str):
+def build_save_model(preproc_b64: str, filename: str):
     """
-    Builds a KMeans model on the preprocessed data and saves it.
-    Returns the SSE list (JSON-serializable).
+    Builds a KMeans model on preprocessed data (uses elbow to pick k),
+    saves model+scaler+feature list to ../model/<filename>, and returns the SSE list.
     """
-    # decode -> bytes -> numpy array
-    data_bytes = base64.b64decode(data_b64)
-    df = pickle.loads(data_bytes)
+    # decode -> dict
+    payload = pickle.loads(base64.b64decode(preproc_b64))
+    X = payload["X"]
+    scaler = payload["scaler"]
+    features = payload["features"]
 
+    # compute SSE for k=1..49
     kmeans_kwargs = {"init": "random", "n_init": 10, "max_iter": 300, "random_state": 42}
+    ks = range(1, 50)
     sse = []
-    for k in range(1, 50):
-        kmeans = KMeans(n_clusters=k, **kmeans_kwargs)
-        kmeans.fit(df)
-        sse.append(kmeans.inertia_)
+    for k in ks:
+        km = KMeans(n_clusters=k, **kmeans_kwargs)
+        km.fit(X)
+        sse.append(km.inertia_)
 
-    # NOTE: This saves the last-fitted model (k=49), matching your original intent.
-    output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "model")
+    # pick elbow if possible, else fallback to 3
+    try:
+        kl = KneeLocator(list(ks), sse, curve="convex", direction="decreasing")
+        k_star = kl.elbow if kl.elbow is not None else 3
+    except Exception:
+        k_star = 3
+
+    model = KMeans(n_clusters=int(k_star), **kmeans_kwargs).fit(X)
+
+    # save model bundle
+    output_dir = _project_path("../model")
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, filename)
     with open(output_path, "wb") as f:
-        pickle.dump(kmeans, f)
+        pickle.dump(
+            {"model": model, "scaler": scaler, "features": features, "k_star": int(k_star)},
+            f
+        )
 
-    return sse  # list is JSON-safe
+    return sse  # JSON-serializable list
 
 
 def load_model_elbow(filename: str, sse: list):
     """
-    Loads the saved model and uses the elbow method to report k.
-    Returns the first prediction (as a plain int) for test.csv.
+    Loads the saved model bundle and predicts the first row of mall_customers_test.csv
+    using the SAME features and scaler. Returns an int cluster label.
     """
-    # load the saved (last-fitted) model
-    output_path = os.path.join(os.path.dirname(__file__), "../model", filename)
-    loaded_model = pickle.load(open(output_path, "rb"))
+    # load bundle
+    model_path = _project_path("../model", filename)
+    bundle = pickle.load(open(model_path, "rb"))
+    model = bundle["model"]
+    scaler = bundle["scaler"]
+    features = bundle["features"]
 
-    # elbow for information/logging
-    kl = KneeLocator(range(1, 50), sse, curve="convex", direction="decreasing")
-    print(f"Optimal no. of clusters: {kl.elbow}")
-
-    # predict on raw test data (matches your original code)
-    df = pd.read_csv(os.path.join(os.path.dirname(__file__), "../data/test.csv"))
-    pred = loaded_model.predict(df)[0]
-
-    # ensure JSON-safe return
+    # elbow log (optional)
     try:
-        return int(pred)
+        kl = KneeLocator(range(1, 50), sse, curve="convex", direction="decreasing")
+        print(f"Optimal no. of clusters (elbow): {kl.elbow}")
     except Exception:
-        # if not numeric, still return a JSON-friendly version
-        return pred.item() if hasattr(pred, "item") else pred
+        pass
+
+    # read and preprocess test using same columns + scaler
+    test_df = pd.read_csv(_project_path("../data/mall_customers_test.csv")).dropna()
+
+    # ensure features exist in test
+    missing = [c for c in features if c not in test_df.columns]
+    if missing:
+        raise ValueError(f"Test data is missing required feature columns: {missing}")
+
+    Xtest = scaler.transform(test_df[features].values)
+    pred = model.predict(Xtest)[0]
+
+    return int(pred)
